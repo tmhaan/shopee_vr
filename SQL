@@ -1,0 +1,86 @@
+CREATE DATABASE shopee_vr;
+drop database shopee_vr;
+
+
+-- bảng cho user
+CREATE TABLE user (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    DOB date,
+    gender varchar(20) not null,
+    email varchar(200) UNIQUE, -- email dang ky phải unique không trùng 
+    phone_number INT(20) UNIQUE, -- sdt đăng ký phải unique không trùng lặp
+    address varchar(300)
+);
+
+-- bảng lưu địa chỉ
+CREATE TABLE delivery_info(
+	id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    name Varchar(100) not null, 
+    phone_number int(20),
+    address varchar(300),
+    FOREIGN KEY (user_id) REFERENCES user(user_id)
+);
+
+-- bảng order hàng 
+CREATE TABLE don_hang (
+    order_id INT AUTO_INCREMENT PRIMARY KEY,
+    delivery_info INT not null,
+    order_date DATE,
+    status varchar(50), 
+    voucher INT,
+    delivery_fee INT,
+    total_cost INT,
+	FOREIGN KEY (delivery_info) REFERENCES delivery_info(id)
+);
+
+-- list sản phẩm
+CREATE TABLE product (
+    product_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    category varchar(100) not null,
+    price DECIMAL(10,2),
+    stock INT,
+    user_id INT,
+    FOREIGN KEY (user_id) REFERENCES user(user_id) -- liên kết với người bán
+);
+
+Create Table buy (
+	order_id INT, 
+    product_id INT,
+    quantity INT, 
+    FOREIGN KEY (order_id) REFERENCES don_hang(order_id),
+    FOREIGN KEY (product_id) REFERENCES product(product_id)
+);
+
+-- Bảng giỏ hàng 
+CREATE TABLE cart (
+    product_id INT, 
+    quantity INT,
+    user_id INT,
+    FOREIGN KEY (user_id) REFERENCES user(user_id),
+    FOREIGN KEY (product_id) REFERENCES product(product_id)
+);
+
+-- bảng Mỗi khi khách hàng vào không gian mua sắm VR, hệ thống sẽ mở một phiên VR.
+CREATE TABLE VR_session (
+    session_id INT AUTO_INCREMENT PRIMARY KEY, -- định danh mỗi khi nguồi dùng mở
+    product_id INT, 
+    user_id INT, -- mã khách hàng 
+    type_device VARCHAR(100), -- khách hàng sử dụng thiết bị gì (vd: iphone , samsung )
+    started_at DATETIME, -- thời điểm bắt đầu
+    ended_at DATETIME, -- thoi diem ket thuc
+    FOREIGN KEY (user_id) REFERENCES user(user_id),
+    FOREIGN KEY (product_id) REFERENCES product(product_id)
+);
+
+-- bảng ghi lại hành vi sử dụng VR của khách hàng 
+CREATE TABLE user_log (
+	user_id INT, 
+    ngay_gio datetime, -- thời điểm khách hàng hanh dong
+    action_type VARCHAR(100), -- loại hành động (ví dụ: xem sản phẩm, xem sản phẩm qua VR, thêm vào giỏ hàng, bấm mua)
+    session_id INT, -- neu co dung VR
+    FOREIGN KEY (session_id) REFERENCES VR_session(session_id),
+	FOREIGN KEY (user_id) REFERENCES user(user_id)
+);
